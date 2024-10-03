@@ -1,0 +1,318 @@
+basePath: /songs
+definitions:
+  dto.AddSongRequest:
+    properties:
+      group:
+        description: Группа или исполнитель
+        example: My Band
+        type: string
+      song:
+        description: Название песни
+        example: My Song
+        type: string
+    required:
+    - group
+    - song
+    type: object
+  dto.LyricsResponse:
+    properties:
+      page:
+        description: Номер текущей страницы
+        type: integer
+      text:
+        description: Текст песни, разбитый на страницы
+        items:
+          type: string
+        type: array
+      totalPages:
+        description: Общее количество страниц с текстом
+        type: integer
+    type: object
+  dto.PaginatedSongsResponse:
+    properties:
+      page:
+        description: Номер текущей страницы
+        type: integer
+      pageSize:
+        description: Размер страницы
+        type: integer
+      songs:
+        description: Список песен
+        items:
+          $ref: '#/definitions/dto.SongResponse'
+        type: array
+      total:
+        description: Общее количество записей
+        type: integer
+      totalPages:
+        description: Общее количество страниц
+        type: integer
+    type: object
+  dto.SongResponse:
+    properties:
+      group:
+        description: Название группы или исполнителя
+        type: string
+      id:
+        description: Идентификатор песни
+        type: integer
+      link:
+        description: Ссылка на песню
+        type: string
+      releaseDate:
+        description: Дата релиза песни
+        type: string
+      song:
+        description: Название песни
+        type: string
+      text:
+        description: Текст песни
+        type: string
+    required:
+    - group
+    - id
+    - link
+    - releaseDate
+    - song
+    - text
+    type: object
+  dto.UpdateSongRequest:
+    properties:
+      group:
+        description: Группа или исполнитель
+        example: My Band
+        type: string
+      link:
+        description: Ссылка на песню
+        example: https://example.com/mysong
+        type: string
+      releaseDate:
+        description: Дата релиза
+        example: "2023-01-01"
+        type: string
+      text:
+        description: Текст песни
+        example: This is the lyrics...
+        type: string
+      title:
+        description: Название песни
+        example: My Song
+        type: string
+    type: object
+  dto.e:
+    properties:
+      details:
+        description: Дополнительные детали ошибки (опционально)
+        type: string
+      error:
+        description: Краткое описание ошибки
+        type: string
+      message:
+        description: Сообщение об ошибке
+        type: string
+      status:
+        description: HTTP статус ошибки
+        type: integer
+    type: object
+  dto.s:
+    properties:
+      message:
+        description: Сообщение об успешном выполнении
+        type: string
+      status:
+        description: HTTP статус успешного выполнения
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Выполнялось как тестовое задание для Effective Mobile
+  title: Реализация онлайн библиотеки песен
+  version: "1.0"
+paths:
+  /:
+    get:
+      consumes:
+      - application/json
+      description: Получить список песен с пагинацией на основе предоставленных параметров
+        запроса
+      parameters:
+      - description: Название группы
+        in: query
+        name: group
+        type: string
+      - description: Название песни
+        in: query
+        name: song
+        type: string
+      - description: 'Дата выпуска с (формат: 2006-01-02)'
+        in: query
+        name: fromDate
+        type: string
+      - description: 'Дата выпуска до (формат: 2006-01-02)'
+        in: query
+        name: untilDate
+        type: string
+      - default: 1
+        description: Номер страницы
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PaginatedSongsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.e'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.e'
+      summary: Получить библиотеку песен
+      tags:
+      - songs
+  /{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удалить песню из библиотеки по ее ID
+      parameters:
+      - description: ID песни
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/dto.s'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.e'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.e'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.e'
+      summary: Удалить песню
+      tags:
+      - songs
+    patch:
+      consumes:
+      - application/json
+      description: Обновить данные песни по ее ID
+      parameters:
+      - description: ID песни
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Обновленные данные песни
+        in: body
+        name: song
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateSongRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.s'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.e'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.e'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.e'
+      summary: Обновить песню
+      tags:
+      - songs
+  /add:
+    post:
+      consumes:
+      - application/json
+      description: Добавляет новую песню в библиотеку
+      parameters:
+      - description: Данные новой песни
+        in: body
+        name: song
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AddSongRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.s'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.e'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.e'
+      summary: Добавить новую песню
+      tags:
+      - songs
+  /lyrics/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Получить текст конкретной песни по ее ID
+      parameters:
+      - description: ID песни
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: 1
+        description: Номер страницы
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LyricsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.e'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.e'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.e'
+      summary: Получить текст песни
+      tags:
+      - songs
+swagger: "2.0"

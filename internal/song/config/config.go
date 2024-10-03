@@ -25,7 +25,8 @@ type Config struct {
 }
 
 // MustLoad загружает конфигурацию приложения
-func MustLoad() (config *Config) {
+func MustLoad() *Config {
+	var config Config
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Ошибка загрузки конфигурации .env")
@@ -50,5 +51,5 @@ func MustLoad() (config *Config) {
 	config.Database.Name = os.Getenv("DB_NAME")
 	config.Database.SslMode = os.Getenv("DB_SSLMODE")
 
-	return config
+	return &config
 }
